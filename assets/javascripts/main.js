@@ -18,12 +18,17 @@
     }
     startDate = new Date(year, month, 0, 0, 0, 0);
 
+    var jqTable = $("#timetable");
+
     // StartTime ist der Zeitpunkt bis zu den Daten geliefert werden
     var startTime = Math.round(today.getTime()/1000);
     // Timespan ist der Offset in die Vergangenheit bis wohin Daten geliefert werden
     var timespan =  Math.round( (today.getTime() - startDate.getTime())/1000 );
 
-    var jqBody = $("#timetable").find("tbody");
+    var jqBody = jqTable.find("tbody");
+
+    bindRowPinning(jqTable);
+
     $.ajax({
         "url": config.baseUri+"?start_time="+startTime+"&timespan="+timespan+"&jive_user_id="+config.userId,
         "method": "GET",
@@ -151,4 +156,20 @@
         return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
     }
 
+    function bindRowPinning(table){
+        var jqTable = $(table);
+        jqTable.click(function(e){
+            clear();
+            var jqTarget = $(e.target);
+            jqTarget.parents("tr").addClass("pinned");
+        });
+
+        function clear(){
+            jqTable.find("tr.pinned").removeClass("pinned");
+        }
+    }
+
 })(window.jQuery, window.timetrackerConfig);
+
+
+

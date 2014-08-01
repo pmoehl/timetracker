@@ -7,6 +7,14 @@ table.timetable tbody td {
     vertical-align: middle;
 }
 
+table.timetable tbody tr.pinned {
+    background-color: lightgoldenrodyellow !important;
+}
+
+table.timetable tbody tr.pinned td {
+    background-color: lightgoldenrodyellow !important;
+}
+
 .timespan, .timespan-num, .starttime, .comment {
     border-left: 3px solid lightgray;
 }
