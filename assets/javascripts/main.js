@@ -42,7 +42,7 @@
                 $.each(dayData.timetable, function(id, timeData) {
                     var rowKey = formattedDay + "#" + timeData.project_id;
 
-                    var rowData = rows[formattedDay];
+                    var rowData = rows[rowKey];
                     var start_time = timeData.start_time.substring(11,16);
                     var end_time = timeData.end_time.substring(11,16);
                     var start_timestamp = Date.parse(timeData.start_time);
@@ -59,7 +59,7 @@
                             "project_name": timeData.project_name,
                             "comment": timeData.comment
                         };
-                        rows[formattedDay] = rowData;
+                        rows[rowKey] = rowData;
                     }
                     else {
                         if(start_timestamp < rowData.start_timestamp) {
