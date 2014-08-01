@@ -84,16 +84,7 @@
             });
 
             $.each(rows, function(rowKey, rowData) {
-                var jqRow = $("<tr/>");
-
-                jqRow.append($("<td/>", {"html":rowData.day}));
-                jqRow.append($("<td/>", {"text":rowData.start_time}));
-                jqRow.append($("<td/>", {"text":rowData.end_time}));
-                jqRow.append($("<td/>", {"html":formatTimespan(rowData.pause)}));
-                jqRow.append($("<td/>", {"html":formatTimespan(rowData.timespan)}));
-                jqRow.append($("<td/>", {"text":rowData.project_name}));
-                jqRow.append($("<td/>", {"text":rowData.comment}));
-
+                var jqRow = createRow(rowKey, rowData);
                 jqRow.appendTo(jqBody);
             });
 
@@ -109,12 +100,45 @@
 
     });
 
+    function createRow(rowKey, rowData){
+        var jqRow = $("<tr/>");
+
+        jqRow.append($("<td/>", {"html":rowData.day, "class": "day"}));
+        jqRow.append($("<td/>", {"text":rowData.start_time, "class": "starttime"}));
+        jqRow.append($("<td/>", {"text":rowData.end_time, "class": "endtime"}));
+        jqRow.append($("<td/>", {"html":formatTimespan(rowData.timespan), "class": "timespan"}));
+        jqRow.append($("<td/>", {"html":formatTimespan(rowData.pause), "class": "pause"}));
+        jqRow.append($("<td/>", {"html":roundToQuarters(rowData.timespan), "class": "timespan-num"}));
+        jqRow.append($("<td/>", {"html":roundToQuarters(rowData.pause), "class": "pause-num"}));
+        jqRow.append($("<td/>", {"text":rowData.project_name, "class": "project"}));
+        jqRow.append($("<td/>", {"text":rowData.comment, "class": "comment"}));
+
+        return jqRow;
+    }
+
+    function roundToQuarters(timespan){
+        if(timespan <= 0) {
+            return "";
+        }
+        var hours = timespan / 60 / 60;
+        hours = Math.round(hours * 100) / 100;
+        hours = Math.round(hours * 4) / 4;
+        return hours.toFixed(2);
+    }
+
     function formatTimespan(timespan) {
         if(timespan <= 0) {
             return "";
         }
         var hours = Math.floor(timespan / 60 / 60);
         var minutes = Math.floor(timespan / 60 - hours * 60);
-        return hours + "h&nbsp;" + minutes + "m";
+        return pad(hours, 2) + "h&nbsp;" + pad(minutes, 2) + "m";
     }
+
+    function pad(n, width, z) {
+        z = z || '0';
+        n = n + '';
+        return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+    }
+
 })(window.jQuery, window.timetrackerConfig);

@@ -1,0 +1,21 @@
+body {
+    font-size: 12px;
+    line-height: 10px;
+}
+
+table.timetable tbody td {
+    vertical-align: middle;
+}
+
+.timespan, .timespan-num, .starttime, .comment {
+    border-left: 3px solid lightgray;
+}
+.pause, .pause-num {
+    border-right: 3px solid lightgray;
+}
+.comment {
+    font-size: 10px;
+}
+.project {
+    font-size: 10px;
+}
