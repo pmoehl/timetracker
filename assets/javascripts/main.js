@@ -51,7 +51,7 @@
                             "pause": 0,
                             "timespan": 0,
                             "project_name": timeData.project_name,
-                            "comment": timeData.comment
+                            "comment": (timeData.comment) ? timeData.comment : ""
                         };
                         rows[rowKey] = rowData;
                     }
@@ -68,7 +68,7 @@
                             rowData.end_timestamp = end_timestamp;
                             rowData.end_time = end_time;
                         }
-                        if (rowData.comment.indexOf(timeData.comment) == -1) {
+                        if (timeData.comment && rowData.comment.indexOf(timeData.comment) == -1) {
                            rowData.comment += " " + timeData.comment;
                         }
                     }
