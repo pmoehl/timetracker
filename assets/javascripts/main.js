@@ -31,12 +31,6 @@
 
         "success": function(data) {
             var rows = {};
-            var sumData = {
-                "day": "SUMME",
-                "pause": 0,
-                "timespan": 0
-            };
-            rows["SUM"] = sumData;
 
             $.each(data.days, function(formattedDay, dayData) {
                 $.each(dayData.timetable, function(id, timeData) {
@@ -57,27 +51,43 @@
                             "pause": 0,
                             "timespan": 0,
                             "project_name": timeData.project_name,
-                            "comment": timeData.comment
+                            "comment": (timeData.comment) ? timeData.comment : ""
                         };
                         rows[rowKey] = rowData;
                     }
                     else {
-                        if(start_timestamp < rowData.start_timestamp) {
+                        if (start_timestamp < rowData.start_timestamp) {
                             rowData.pause = (rowData.start_timestamp - end_timestamp) / 1000;
 
                             rowData.start_timestamp = start_timestamp;
                             rowData.start_time = start_time;
                         }
-                        if(end_timestamp > rowData.end_timestamp) {
+                        if (end_timestamp > rowData.end_timestamp) {
                             rowData.pause = (start_timestamp - rowData.end_timestamp) / 1000;
 
                             rowData.end_timestamp = end_timestamp;
                             rowData.end_time = end_time;
                         }
-                        rowData.comment += " " + timeData.comment;
+                        if (timeData.comment && rowData.comment.indexOf(timeData.comment) == -1) {
+                           rowData.comment += " " + timeData.comment;
+                        }
                     }
 
                     rowData.timespan += timeData.timespan;
+
+
+                    // Sum data per project id
+                    var sumKey = "SUM"+timeData.project_id;
+                    var sumData = rows[sumKey];
+                    if(!sumData) {
+                        sumData = {
+                            "day": "SUMME",
+                            "pause": 0,
+                            "timespan": 0,
+                            "project_name": timeData.project_name
+                        };
+                        rows[sumKey] = sumData;
+                    }
 
                     sumData.timespan += timeData.timespan;
                 });
