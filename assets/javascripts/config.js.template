@@ -1,0 +1,4 @@
+window.timetrackerConfig = {
+    "baseUri": "",
+    "userId": ""
+};
