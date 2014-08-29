@@ -15,10 +15,10 @@ table.timetable tbody tr.pinned td {
     background-color: lightgoldenrodyellow !important;
 }
 
-.timespan, .timespan-num, .starttime, .comment {
+.pause, .starttime, .comment {
     border-left: 3px solid lightgray;
 }
-.pause, .pause-num {
+.timespan {
     border-right: 3px solid lightgray;
 }
 .comment {

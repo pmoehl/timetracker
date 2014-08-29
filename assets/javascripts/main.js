@@ -27,10 +27,12 @@
                     },
                     { "data": "start_time", "className": "starttime" },
                     { "data": "end_time", "className": "endtime" },
-                    { "data": "timespan", "className": "timespan", "render": formatTimespan},
                     { "data": "pause", "className": "pause", "render": formatTimespan},
-                    { "data": "timespan_quarters", "className": "timespan-num" },
-                    { "data": "pause_quarters", "className": "pause-num" },
+                    { "data": "timespan", "className": "timespan", "render": formatTimespan},
+                    { "data": "start_quarters", "className": "starttime" },
+                    { "data": "end_quarters", "className": "endtime" },
+                    { "data": "pause_quarters", "className": "pause" },
+                    { "data": "timespan_quarters", "className": "timespan" },
                     { "data": "project_name", "className": "project" },
                     { "data": "comment", "className": "comment" }
                 ]
@@ -93,11 +95,13 @@
             var start_time = timeData.start_time.substring(11,16);
             var end_time = timeData.end_time.substring(11,16);
             // Date.parse requires the format YYYY-MM-DDTHH:mm:ss
-            var start_timestamp = Date.parse(timeData.start_time.replace(" ", "T"));
-            var end_timestamp = Date.parse(timeData.end_time.replace(" ", "T"));
+            var start_timestamp = Date.parse(timeData.start_time.replace(" ", "T")) / 1000;
+            var end_timestamp = Date.parse(timeData.end_time.replace(" ", "T")) / 1000;
+            var day = new Date(start_timestamp * 1000);
+            var day_timestamp = Date.UTC(day.getFullYear(), day.getMonth(), day.getDate()) / 1000;
             if(!rowData) {
                 rowData = {
-                    "day_timestamp": parseInt(dayData.time)*1000,
+                    "day_timestamp": day_timestamp,
                     "start_timestamp": start_timestamp,
                     "start_time": start_time,
                     "end_timestamp": end_timestamp,
@@ -112,13 +116,13 @@
             }
             else {
                 if (start_timestamp < rowData.start_timestamp) {
-                    rowData.pause = (rowData.start_timestamp - end_timestamp) / 1000;
+                    rowData.pause = (rowData.start_timestamp - end_timestamp);
 
                     rowData.start_timestamp = start_timestamp;
                     rowData.start_time = start_time;
                 }
                 if (end_timestamp > rowData.end_timestamp) {
-                    rowData.pause = (start_timestamp - rowData.end_timestamp) / 1000;
+                    rowData.pause = (start_timestamp - rowData.end_timestamp);
 
                     rowData.end_timestamp = end_timestamp;
                     rowData.end_time = end_time;
@@ -131,8 +135,10 @@
             rowData.timespan += timeData.timespan;
 
             // Additional data
-            rowData.timespan_quarters = roundToQuarters(rowData.timespan);
+            rowData.start_quarters = roundToQuarters(rowData.start_timestamp - day_timestamp);
+            rowData.end_quarters = roundToQuarters(rowData.end_timestamp - day_timestamp);
             rowData.pause_quarters = roundToQuarters(rowData.pause);
+            rowData.timespan_quarters = roundToQuarters(rowData.timespan);
         }
 
         // Convert to array
@@ -157,7 +163,7 @@
     }
 
     function formatDate(timestamp) {
-        var date = new Date(timestamp);
+        var date = new Date(timestamp*1000);
         return date.toLocaleDateString();
     }
 
@@ -207,20 +213,20 @@
         var api = this.api();
 
         // Total over this page
-        var colData = api.column( 3, {page: 'current'} ).data();
+        var colData = api.column( 4, {page: 'current'} ).data();
         var timespanSum = formatTimespan(colData.length ?
                 colData.reduce( function (a, b) {
                 return a + b;
             } ) : 0
         );
-        $( api.column(3).footer() ).html(timespanSum);
+        $( api.column(4).footer() ).html(timespanSum);
 
-        colData = api.column( 5, {page: 'current'} ).data();
+        colData = api.column( 8, {page: 'current'} ).data();
         var timespanQuarterSum = colData.length ?
             colData.reduce( function (a, b) {
                     return a + b;
                 } ) : 0;
-        $( api.column(5).footer() ).html(timespanQuarterSum);
+        $( api.column(8).footer() ).html(timespanQuarterSum);
     }
 
 })(window.jQuery, window.timetrackerConfig);
