@@ -211,9 +211,14 @@
 
     function footerCallback( tfoot, data, start, end, display ) {
         var api = this.api();
+        var colData;
 
-        // Total over this page
-        var colData = api.column( 4, {page: 'current'} ).data();
+        // Anzahl der Tage
+        colData = api.column( 0, {page: 'current'} ).data();
+        $( api.column(0).footer() ).html('SUMME aus '+colData.length+' Tag(en)');
+
+        // Summe der Dauer
+        colData = api.column( 4, {page: 'current'} ).data();
         var timespanSum = formatTimespan(colData.length ?
                 colData.reduce( function (a, b) {
                 return a + b;
@@ -221,6 +226,7 @@
         );
         $( api.column(4).footer() ).html(timespanSum);
 
+        // Summe der Dauer auf viertel Stunden gerundet
         colData = api.column( 8, {page: 'current'} ).data();
         var timespanQuarterSum = colData.length ?
             colData.reduce( function (a, b) {
