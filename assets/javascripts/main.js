@@ -13,15 +13,27 @@
         "success": function(data) {
             var rows = buildDataRows(data);
 
-            $.each(rows, function(rowKey, rowData) {
-                var jqRow = createHtmlRow(rowKey, rowData);
-                jqRow.appendTo(jqBody);
-            });
-
             $("#timetable").dataTable({
                 "lengthMenu": [[-1], ["All"]],
                 "order": [[ 0, "desc" ]],
-                "dom": '<lf<t>i>'
+                "dom": '<lf<t>i>',
+                "footerCallback": footerCallback,
+                "data": rows,
+                "columns": [
+                    { "data": "day_timestamp", "className": "day", "render": {
+                            "_": formatDate,
+                            "sort": function(data) {return data;}
+                        }
+                    },
+                    { "data": "start_time", "className": "starttime" },
+                    { "data": "end_time", "className": "endtime" },
+                    { "data": "timespan", "className": "timespan", "render": formatTimespan},
+                    { "data": "pause", "className": "pause", "render": formatTimespan},
+                    { "data": "timespan_quarters", "className": "timespan-num" },
+                    { "data": "pause_quarters", "className": "pause-num" },
+                    { "data": "project_name", "className": "project" },
+                    { "data": "comment", "className": "comment" }
+                ]
             });
         },
 
@@ -70,7 +82,6 @@
         $.each(data.days, function(formattedDay, dayData) {
             $.each(dayData.timetable, function(id, timeData) {
                 buildDataRow(formattedDay, dayData, id, timeData);
-                addToSumRow(timeData);
             });
         });
 
@@ -86,7 +97,7 @@
             var end_timestamp = Date.parse(timeData.end_time.replace(" ", "T"));
             if(!rowData) {
                 rowData = {
-                    "day": formattedDay+"&nbsp;"+dayData.timeWeekday,
+                    "day_timestamp": parseInt(dayData.time)*1000,
                     "start_timestamp": start_timestamp,
                     "start_time": start_time,
                     "end_timestamp": end_timestamp,
@@ -118,45 +129,18 @@
             }
 
             rowData.timespan += timeData.timespan;
+
+            // Additional data
+            rowData.timespan_quarters = roundToQuarters(rowData.timespan);
+            rowData.pause_quarters = roundToQuarters(rowData.pause);
         }
 
-        function addToSumRow(timeData) {
-            // Sum data per project id
-            var sumKey = "SUM"+timeData.project_id;
-            var sumData = rows[sumKey];
-            if(!sumData) {
-                sumData = {
-                    "day": "SUMME",
-                    "pause": 0,
-                    "timespan": 0,
-                    "project_name": timeData.project_name,
-                    "hasMenu": false
-                };
-                rows[sumKey] = sumData;
-            }
-
-            sumData.timespan += timeData.timespan;
-        }
-
-        return rows;
+        // Convert to array
+        return $.map(rows, function(rowData, rowKey) {
+            return [rowData];
+        });
     }
 
-    function createHtmlRow(rowKey, rowData){
-        var jqRow = $("<tr/>");
-
-        jqRow.append($("<td/>", {"html":rowData.day, "class": "day"}));
-        jqRow.append($("<td/>", {"text":rowData.start_time, "class": "starttime"}));
-        jqRow.append($("<td/>", {"text":rowData.end_time, "class": "endtime"}));
-        jqRow.append($("<td/>", {"html":formatTimespan(rowData.timespan), "class": "timespan"}));
-        jqRow.append($("<td/>", {"html":formatTimespan(rowData.pause), "class": "pause"}));
-        jqRow.append($("<td/>", {"html":roundToQuarters(rowData.timespan), "class": "timespan-num"}));
-        jqRow.append($("<td/>", {"html":roundToQuarters(rowData.pause), "class": "pause-num"}));
-        jqRow.append($("<td/>", {"text":rowData.project_name, "class": "project"}));
-        jqRow.append($("<td/>", {"text":rowData.comment, "class": "comment"}));
-        jqRow.append($("<td/>", {"html":buildActionMenu(rowData), "class": "action"}));
-
-        return jqRow;
-    }
 
     function roundToQuarters(timespan){
         if(timespan <= 0) {
@@ -165,7 +149,16 @@
         var hours = timespan / 60 / 60;
         hours = Math.round(hours * 100) / 100;
         hours = Math.round(hours * 4) / 4;
-        return hours.toFixed(2);
+        return precise_round(hours, 2);
+    }
+
+    function precise_round(num, decimals) {
+        return Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals);
+    }
+
+    function formatDate(timestamp) {
+        var date = new Date(timestamp);
+        return date.toLocaleDateString();
     }
 
     function formatTimespan(timespan) {
@@ -200,7 +193,7 @@
             return '';
         }
 
-        return '<div class="btn-group">' +
+        return '<div class="btn-group pull-right">' +
             '  <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">' +
             '    <span class="glyphicon glyphicon-cog"></span>' +
             '  </button>' +
@@ -208,6 +201,26 @@
             '    <li><a href="#">Post to machold-portal</a></li>' +
             '  </ul>' +
             '</div>';
+    }
+
+    function footerCallback( tfoot, data, start, end, display ) {
+        var api = this.api();
+
+        // Total over this page
+        var colData = api.column( 3, {page: 'current'} ).data();
+        var timespanSum = formatTimespan(colData.length ?
+                colData.reduce( function (a, b) {
+                return a + b;
+            } ) : 0
+        );
+        $( api.column(3).footer() ).html(timespanSum);
+
+        colData = api.column( 5, {page: 'current'} ).data();
+        var timespanQuarterSum = colData.length ?
+            colData.reduce( function (a, b) {
+                    return a + b;
+                } ) : 0;
+        $( api.column(5).footer() ).html(timespanQuarterSum);
     }
 
 })(window.jQuery, window.timetrackerConfig);

@@ -27,3 +27,7 @@ table.timetable tbody tr.pinned td {
 .project {
     font-size: 10px;
 }
+
+tfoot th.day {
+    border-left: none;
+}
